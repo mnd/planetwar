@@ -32,10 +32,11 @@ myMap.createBase((10, 10), 5)
 myMap.createBase((50, 50), 5)
 for i in range(30,40):
     for j in range(30, 40):
-        myMap.createGround((i, j), max(10, 100 * (i-30)/10))
+        myMap.createGround((i, j), 10 * (i-29))
 
 for i in range(60,70):
     for j in range(30, 40):
-        myMap.createGround((i, j), max(10, 100 * (70-i)/10))
+        myMap.createGround((i, j), 10 * (70-i))
 
+# viewer.runTest (myMap, 10)
 viewer.run (myMap, 10)

@@ -30,12 +30,14 @@ class Map ():
     self.height -- rows count
     self.content -- double demensional height*width sized array with MapObject
     object in it
+    self.bases -- list of bases on map
     """
     def __init__ (self, width, height):
         """Construct map object"""
         self.width = width
         self.height = height
         self.content = []
+        self.bases = []
         #create correct sized content array
         for i in xrange (width):
             self.content.append(height*[spaceObject])
@@ -71,6 +73,7 @@ class Map ():
                     self.content[x+i][y+j] = b
                 else:
                     raise Exception ('Base must be created only over space')
+        self.bases.append(b)
 
     def damageCell (self, place, count):
         """..."""
