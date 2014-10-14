@@ -23,7 +23,7 @@
 __doc__ = """testing.py -- create simple map and test viewer and phisics"""
 
 import paths
-from gamelib import (maprepr, viewer)
+from gamelib import (maprepr, runner)
 
 
 myMap = maprepr.Map(100, 65)
@@ -39,4 +39,4 @@ for i in range(60,70):
         myMap.createGround((i, j), 10 * (70-i))
 
 # viewer.runTest (myMap, 10)
-viewer.run (myMap, 10)
+runner.run (myMap, 10)

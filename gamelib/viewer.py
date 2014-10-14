@@ -30,7 +30,8 @@ class View ():
     def __init__ (self, myMap, size):
         self.size = size
         self.map = myMap
-        self.screenSize = self.width, self.height = size*myMap.width, size*myMap.height
+        self.screenSize = (self.width, self.height) = (size*myMap.width,
+                                                       size*myMap.height)
         pygame.init()
         self.screen = pygame.display.set_mode(self.screenSize)
         # Fill background
@@ -49,12 +50,54 @@ class View ():
         self.groundSquare = pygame.Surface((size,size)).convert()
         self.screen.blit(self.background, (0, 0))
 
-    def step (self, rockets):
-        for event in pygame.event.get():
+        self.selectSquare = pygame.Surface((size,size)).convert()
+        self.selectSquare.fill((0,255,0))
+
+    def selectPowerVector (self, start_square, start_place):
+        [sx, sy] = start_place
+        sx = int(sx)
+        sy = int(sy)
+        while 1:
+            [x,y] = pygame.mouse.get_pos ()
+            px = (int (x / self.size) + 0.5 - sx) / 10
+            py = (int (y / self.size) + 0.5 - sy) / 10
+            for event in pygame.event.get ():
+                if event.type == pygame.QUIT:
+                    pygame.base.quit ()
+                    sys.exit ()        #probably rise exception, instead of exit
+                if event.type == pygame.MOUSEBUTTONUP:
+                    return (px, py)
+            self.step ([], start_square, (start_place, (px, py)))
+
+    def selectStartPlace (self, base):
+        while 1:
+            [x,y] = pygame.mouse.get_pos ()
+            x = int (x / self.size)
+            y = int (y / self.size)
+            for event in pygame.event.get ():
+                if event.type == pygame.QUIT:
+                    pygame.base.quit ()
+                    sys.exit ()        #probably rise exception, instead of exit
+                if event.type == pygame.MOUSEBUTTONUP:
+                    if ((base.x - 1 <= x and x <= base.x + base.r
+                         and base.y - 1 <= y and y <= base.y + base.r)
+                        and (x == base.x - 1 or x == base.x + base.r
+                             or y == base.y - 1 or y == base.y + base.r)):
+                        return (x, y)
+            if ((base.x - 1 <= x and x <= base.x + base.r
+                 and base.y - 1 <= y and y <= base.y + base.r)
+                and (x == base.x - 1 or x == base.x + base.r
+                     or y == base.y - 1 or y == base.y + base.r)):
+                self.step ([], (x,y))
+            else:
+                self.step ()
+
+    def step (self, rockets = [], select = None, vector = None):
+        for event in pygame.event.get ():
             if event.type == pygame.QUIT:
-                pygame.base.quit()
-                sys.exit()                #probably return exit code, instead of exit
-                return 1
+                pygame.base.quit ()
+                sys.exit ()            #probably rise exception, instead of exit
+
         # Drow map
         self.background.fill((210, 210, 210))
         for x in range(self.map.width):
@@ -63,47 +106,40 @@ class View ():
                     pass                      #don't drow space in foreground
                 elif isinstance(self.map.content[x][y], maprepr.BaseObject):
                     if (self.map.bases[0] is self.map.content[x][y]):
-                        self.background.blit(self.baseSquare1, (x*self.size,y*self.size))
+                        self.background.blit(self.baseSquare1, (x*self.size,
+                                                                y*self.size))
                     else:
-                        self.background.blit(self.baseSquare2, (x*self.size, y*self.size))
+                        self.background.blit(self.baseSquare2, (x*self.size,
+                                                                y*self.size))
                 elif isinstance(self.map.content[x][y], maprepr.GroundObject):
                     color = 255 - min(255, int(self.map.content[x][y].weight*2.55))
                     self.groundSquare.fill((color,color,color))
-                    self.background.blit(self.groundSquare, (x*self.size,y*self.size))
+                    self.background.blit(self.groundSquare, (x*self.size,
+                                                             y*self.size))
                 else:
                     raise Exception ('unknown object on the map')
         # Drow rockets
         for r in rockets:
             [x,y] = r.get_place ()
-            self.background.blit(self.rocketSquare, (int(x*self.size),int(y*self.size)))
+            self.background.blit(self.rocketSquare, (int(x*self.size),
+                                                     int(y*self.size)))
+        # Drow select sqares
+        if select != None:
+            [x,y] = select
+            self.background.blit(self.selectSquare, (x*self.size, y*self.size))
+
+        # Drow power vector
+        if vector != None:
+            [start, power] = vector
+            [x, y] = start
+            [px, py] = power
+            x *= self.size
+            y *= self.size
+            px *= self.size
+            py *= self.size
+            pygame.draw.line(self.background, (255,255,0),
+                              (int (x),int (y)), (int (x+px),int (y+py)), 2)
+
         # Display image to screen
         self.screen.blit(self.background, (0, 0))
         pygame.display.flip()
-
-def run (myMap, size):
-    proc = stepper.Stepper (myMap)        #rockets processor
-    view = View(myMap, size)              #viewer
-
-    proc.launch_rocket (rocket.SimpleRocket ((32.5, 22.5), (2.46, 0.0), 40))
-    proc.launch_rocket (rocket.SimpleRocket ((22.5, 32.5), (0.0, 1.7), 70))
-
-    while 1:
-        # 1. Select place from where you would start rocket
-        # 2. Display rocket fly
-        view.step (proc.rockets)
-        while proc.is_inprogress ():
-            view.step (proc.rockets)
-            time.sleep (0.2)
-            proc.step ()
-        # 3. Change user and repeat
-
-def runTest (myMap, size):
-    proc = stepper.Stepper (myMap)
-    proc.launch_rocket (rocket.SimpleRocket ((32.5, 22.5), (2.2, 0.0), 40))
-    proc.launch_rocket (rocket.SimpleRocket ((22.5, 32.5), (0.0, 1.7), 70))
-
-    view = View(myMap, size)
-    while 1:
-        view.step (proc.rockets)
-        proc.step ()
-        time.sleep (0.3)

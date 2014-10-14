@@ -21,4 +21,4 @@
 # along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
 
 __doc__ = """__init__.py -- package file for planetwar game"""
-__all__ = ["maprepr", "viewer", "rockets", "stepper"]
+__all__ = ["maprepr", "viewer", "rockets", "stepper", "runner"]
